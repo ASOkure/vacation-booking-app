@@ -23,3 +23,34 @@ router.get("/", (req, res, next) => {
   });
   db.close();
 });
+router.post("/", (req, res) => {
+  const db = new sqlite3.Database("./db.sqlite");
+  const { catalogItemId, name, address, startDate, endDate } = req.body;
+  db.serialize(() => {
+    const stmt = db.prepare(`
+        INSERT INTO bookings (
+          catalog_item_id,
+          name,
+          address,
+          start_date,
+          end_date
+        ) VALUES (?, ?, ?, ?, ?)
+      `);
+    stmt.run(catalogItemId, name, address, startDate, endDate);
+    stmt.finalize();
+    res.json({ catalogItemId, name, address, startDate, endDate });
+  });
+  db.close();
+});
+router.delete("/:id", verifyToken, (req, res) => {
+  const db = new sqlite3.Database("./db.sqlite");
+  const { id } = req.params;
+  db.serialize(() => {
+    const stmt = db.prepare("DELETE FROM bookings WHERE id = (?)");
+    stmt.run(id);
+    stmt.finalize();
+    res.json({ status: "success" });
+  });
+  db.close();
+});
+module.exports == router;
